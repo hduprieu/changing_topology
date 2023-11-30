@@ -261,6 +261,30 @@ class NetworkxTopology(Topology):
 
     def neighbors(self, worker: int) -> list[int]:
         return list(self.graph.neighbors(worker))
+    
+class StaticExponential(Topology):
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+        self.d = int(math.log(n, 2))
+
+    def is_integer(self, num):
+        return isinstance(num, int) or (isinstance(num, float) and num.is_integer())
+
+
+    def neighbors(self, worker:int) -> list[int]:
+        i  = worker
+        li = []
+        for j in range(self.n):
+            if self.is_integer((math.log((math.mod(j-i, self.n)), 2))) or i == j:
+                li.append(1/(1+ math.ceil(math.log(self.n, 2))))
+            else : 
+                li.append(0.)      
+        return li
+    
+
+
+
 
 
 class SocialNetworkTopology(NetworkxTopology):
@@ -330,6 +354,7 @@ class TimeVaryingExponential(AveragingScheme):
         return w
 
 
+
 class LocalSteps(AveragingScheme):
     def __init__(self, n, period):
         super().__init__()
@@ -371,11 +396,14 @@ def scheme_for_string(topology: str, num_workers: int) -> AveragingScheme:
         return Matrix(FullyConnectedTopology(num_workers).gossip_matrix())
     if topology == "Solo":
         return Matrix(DisconnectedTopology(num_workers).gossip_matrix())
+    if topology == "Static exponential":
+        return Matrix(StaticExponential(num_workers).gossip_matrix())
     if topology == "Time-varying exponential":
         return TimeVaryingExponential(num_workers)
+
     if topology.startswith("Local steps"):
         for i in range(100):
             if topology == f"Local steps ({i})":
                 return LocalSteps(num_workers, i)
-
+    
     raise ValueError(f"Unknown topology {topology}")
