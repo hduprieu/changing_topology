@@ -262,24 +262,7 @@ class NetworkxTopology(Topology):
     def neighbors(self, worker: int) -> list[int]:
         return list(self.graph.neighbors(worker))
     
-class StaticExponential(Topology):
-    def __init__(self, num_workers):
-        super().__init__()
-        self.n = num_workers
 
-    def is_integer(self, num):
-        return isinstance(num, int) or (isinstance(num, float) and num.is_integer())
-
-
-    def neighbors(self, worker:int) -> list[int]:
-        i  = worker
-        li = []
-        for j in range(self.n):
-            if self.is_integer((math.log((math.mod(j-i, self.n)), 2))) or i == j:
-                li.append(1/(1+ math.ceil(math.log(self.n, 2))))
-            else : 
-                li.append(0.)      
-        return li
     
 
 
@@ -350,6 +333,23 @@ class TimeVaryingExponential(AveragingScheme):
     def _w(self, offset):
         w = torch.eye(self.n)
         w = (w + torch.roll(w, -offset, 0)) / 2
+        return w
+    
+class StaticExponential(AveragingScheme):
+    def __init__(self, num_workers):
+        super().__init__(num_workers = num_workers)
+        self.n = num_workers
+
+    def is_integer(self, num):
+        return isinstance(num, int) or (isinstance(num, float) and num.is_integer())
+
+
+    def w(self):
+        w = torch.zeros(self.n, self.n)
+        for i in range(self.n):
+            for j in range(self.n):
+                if i == j or self.is_integer((math.log((j-i) % self.n, 2))) :
+                    w[i, j] = 1/(1+ math.ceil(math.log(self.n, 2)))
         return w
 
 
