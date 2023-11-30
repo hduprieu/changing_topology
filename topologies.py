@@ -263,10 +263,9 @@ class NetworkxTopology(Topology):
         return list(self.graph.neighbors(worker))
     
 class StaticExponential(Topology):
-    def __init__(self, n):
+    def __init__(self, num_workers):
         super().__init__()
-        self.n = n
-        self.d = int(math.log(n, 2))
+        self.n = num_workers
 
     def is_integer(self, num):
         return isinstance(num, int) or (isinstance(num, float) and num.is_integer())
