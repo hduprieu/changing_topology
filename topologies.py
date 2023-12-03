@@ -1,4 +1,5 @@
 import math
+import random
 from functools import lru_cache
 
 import networkx
@@ -261,12 +262,6 @@ class NetworkxTopology(Topology):
 
     def neighbors(self, worker: int) -> list[int]:
         return list(self.graph.neighbors(worker))
-    
-
-    
-
-
-
 
 
 class SocialNetworkTopology(NetworkxTopology):
@@ -323,7 +318,6 @@ class TimeVaryingExponential(AveragingScheme):
         self.n = n
         self.d = int(math.log(n, 2))
         self.period = self.d
-        assert 2**self.d == self.n
 
     def w(self, t=0, params=None):
         offset = 2 ** (t % self.d)
@@ -335,24 +329,42 @@ class TimeVaryingExponential(AveragingScheme):
         w = (w + torch.roll(w, -offset, 0)) / 2
         return w
     
+
 class StaticExponential(AveragingScheme):
-    def __init__(self, num_workers):
-        super().__init__(num_workers = num_workers)
-        self.n = num_workers
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
 
     def is_integer(self, num):
         return isinstance(num, int) or (isinstance(num, float) and num.is_integer())
 
 
-    def w(self):
+    def w(self, t=0):
         w = torch.zeros(self.n, self.n)
         for i in range(self.n):
             for j in range(self.n):
                 if i == j or self.is_integer((math.log((j-i) % self.n, 2))) :
                     w[i, j] = 1/(1+ math.ceil(math.log(self.n, 2)))
+        return (w + torch.transpose(w, 0, 1))/2
+
+class Random_exponential(AveragingScheme):
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+        self.d = int(math.log(n, 2))
+        self.period = self.d
+
+    def w(self, t=0):
+        i = random.randint(0, self.d-1)
+        offset = 2 ** (i % self.d)
+        return (self._w(offset) + torch.transpose(self._w(offset), 0, 1))/2
+
+    @lru_cache(maxsize=10)
+    def _w(self, offset):
+        w = torch.eye(self.n)
+        w = (w + torch.roll(w, -offset, 0)) / 2
         return w
-
-
+    
 
 class LocalSteps(AveragingScheme):
     def __init__(self, n, period):
@@ -396,10 +408,11 @@ def scheme_for_string(topology: str, num_workers: int) -> AveragingScheme:
     if topology == "Solo":
         return Matrix(DisconnectedTopology(num_workers).gossip_matrix())
     if topology == "Static exponential":
-        return Matrix(StaticExponential(num_workers).gossip_matrix())
+        return StaticExponential(num_workers)
     if topology == "Time-varying exponential":
         return TimeVaryingExponential(num_workers)
-
+    if topology == "Random exponential":
+        return Random_exponential(num_workers)
     if topology.startswith("Local steps"):
         for i in range(100):
             if topology == f"Local steps ({i})":
