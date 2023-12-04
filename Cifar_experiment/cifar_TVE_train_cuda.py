@@ -13,7 +13,9 @@ effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
 epochs = 10
-PATH = './essai1_' + str(epochs) +'epoch' + str(start_lr) + 'learning_rate.pth'
+topology = "Static exponential"
+
+PATH = './essai1_' + topology + str(epochs) +'epoch' + str(start_lr) + 'learning_rate.pth'
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
@@ -99,7 +101,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
             
 
         # communication step
-        W = scheme_for_string("Random exponential", num_workers=num_workers).w(i)
+        W = scheme_for_string(topology, num_workers=num_workers).w(i)
 
         with torch.no_grad():
             for param_name, param in working_CNNs[0].named_parameters():
