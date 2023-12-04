@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-start_lr = 2
+start_lr = 1
 effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
@@ -63,10 +63,10 @@ working_CNNs = [Net().to(device) for i in range(num_workers)]
 
 
 criterion = nn.CrossEntropyLoss()
-
+optimizers = [optim.SGD(worker.parameters(), lr=start_lr, momentum=0.0) for worker in working_CNNs]
 
 for epoch in range(epochs):  # loop over the dataset multiple times
-    optimizers = [optim.SGD(worker.parameters(), lr=start_lr/(epoch+1), momentum=0.0) for worker in working_CNNs]
+    
     running_losses = [0.0]*num_workers
     for i, big_batch in enumerate(trainloader, 0):
         #for each time step, we conduct one computation (gradient descent) step, followed by one communication step
