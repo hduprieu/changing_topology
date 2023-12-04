@@ -12,7 +12,7 @@ start_lr = 1
 effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
-epochs = 5
+epochs = 10
 PATH = './essai1_' + str(epochs) +'epoch' + str(start_lr) + 'learning_rate.pth'
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
