@@ -13,7 +13,7 @@ effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
 epochs = 5
-PATH = './essai1_' + epochs +'epoch' + lr + 'learning_rate.pth'
+PATH = './essai1_' + str(epochs) +'epoch' + str(lr) + 'learning_rate.pth'
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
