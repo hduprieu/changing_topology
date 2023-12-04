@@ -115,9 +115,9 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     total = 0
     with torch.no_grad():
         for data in testloader:
-            images, labels = data
+            images, labels = data[0].to(device), data[1].to(device)
             # calculate outputs by running images through the network
-            outputs = working_CNNs[0](images)
+            outputs = working_CNNs[0].(images)
             # the class with the highest energy is what we choose as prediction
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
