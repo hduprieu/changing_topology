@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-
+lr = 0.5
 effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
@@ -58,7 +58,7 @@ working_CNNs = [Net() for i in range(num_workers)]
 
 
 criterion = nn.CrossEntropyLoss()
-optimizers = [optim.SGD(worker.parameters(), lr=0.5, momentum=0.0) for worker in working_CNNs]
+optimizers = [optim.SGD(worker.parameters(), lr=lr, momentum=0.0) for worker in working_CNNs]
 
 for epoch in range(2):  # loop over the dataset multiple times
     running_losses = [0.0]*num_workers
@@ -94,7 +94,7 @@ for epoch in range(2):  # loop over the dataset multiple times
 
         with torch.no_grad():
             for param_name, param in working_CNNs[0].named_parameters():
-                new_param = [param.clone().zero_() for i in range(num_workers)]
+                new_param = [param.clone().zero_() for _ in range(num_workers)]
                 for i in range(num_workers):
                     for j in range(num_workers):
                         new_param[i] += W[i,j]*(working_CNNs[j].state_dict()[param_name])
