@@ -8,12 +8,12 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-start_lr = 1
+start_lr = 2
 effective_batch_size = 16
-num_workers = 8
+num_workers = 32
 batch_size = num_workers * effective_batch_size
 epochs = 10
-topology = "Static exponential"
+topology = "Random exponential"
 
 PATH = './essai1_' + topology + str(epochs) +'epoch' + str(start_lr) + 'learning_rate.pth'
 
