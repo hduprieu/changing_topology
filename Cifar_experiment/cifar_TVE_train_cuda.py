@@ -60,7 +60,8 @@ class Net(nn.Module):
 
 working_CNNs = [Net().to(device) for i in range(num_workers)]
 
-
+train_losses = [[]]*num_workers
+test_acuracy = []
 
 criterion = nn.CrossEntropyLoss()
 optimizers = [optim.SGD(worker.parameters(), lr=start_lr, momentum=0.0) for worker in working_CNNs]
@@ -90,13 +91,15 @@ for epoch in range(epochs):  # loop over the dataset multiple times
 
             # print statistics
             running_losses[k] += loss.item()
+            train_losses[k].append(loss.item())
+
         if i % 60 == 59:    # print every 2000 mini-batches
             print(f'[epoch : {epoch + 1}, average running loss accross workers, iteration : {i + 1:5d}] loss: {sum(running_losses) / (num_workers*60) :.3f}')
             running_losses = [0.0]*num_workers  
             
 
         # communication step
-        W = scheme_for_string("Time-varying exponential", num_workers=num_workers).w(i)
+        W = scheme_for_string("Random exponential", num_workers=num_workers).w(i)
 
         with torch.no_grad():
             for param_name, param in working_CNNs[0].named_parameters():
@@ -107,8 +110,29 @@ for epoch in range(epochs):  # loop over the dataset multiple times
                 for k in range(num_workers):
                     working_CNNs[k].state_dict()[param_name].data.copy_(new_param[k])
 
+    # Accuracy test on test dataset
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            # calculate outputs by running images through the network
+            outputs = working_CNNs[0](images)
+            # the class with the highest energy is what we choose as prediction
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    accuracy = 100 * correct // total
+    test_acuracy.append(accuracy)
+    print(f'Accuracy at epoch {epoch} on the 10000 test images: {100 * correct // total} %')
+
 print('Finished Training')
 
+with open('train_losses.txt', 'w') as file:
+    for loss_one_worker in train_losses:
+        file.write(','.join(map(str, loss_one_worker)) + '\n')
 
+with open('test_acuracy.txt', 'w') as file:
+    file.write(','.join(map(str, test_acuracy)) + '\n')
 
 torch.save(working_CNNs[0].state_dict(), PATH)
