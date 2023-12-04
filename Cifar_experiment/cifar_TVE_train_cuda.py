@@ -8,10 +8,12 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-lr = 0.5
+lr = 1
 effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
+epochs = 5
+PATH = './essai1_' + epochs +'epoch' + lr + 'learning_rate.pth'
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
@@ -63,7 +65,7 @@ working_CNNs = [Net().to(device) for i in range(num_workers)]
 criterion = nn.CrossEntropyLoss()
 optimizers = [optim.SGD(worker.parameters(), lr=lr, momentum=0.0) for worker in working_CNNs]
 
-for epoch in range(2):  # loop over the dataset multiple times
+for epoch in range(epochs):  # loop over the dataset multiple times
     running_losses = [0.0]*num_workers
     for i, big_batch in enumerate(trainloader, 0):
         #for each time step, we conduct one computation (gradient descent) step, followed by one communication step
@@ -107,5 +109,5 @@ for epoch in range(2):  # loop over the dataset multiple times
 print('Finished Training')
 
 
-PATH = './worker' + str(0) + '.pth'
+
 torch.save(working_CNNs[0].state_dict(), PATH)
