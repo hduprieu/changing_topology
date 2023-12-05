@@ -13,3 +13,15 @@
 
 Some of the code has been copied directly from the git of the original paper. 
 
+Some ideas (graph topologies) come from the following paper :
+
+```txt
+@article{parker2020provably,
+  title={Provably efficient online hyperparameter optimization with population-based bandits},
+  author={Parker-Holder, Jack and Nguyen, Vu and Roberts, Stephen J},
+  journal={Advances in neural information processing systems},
+  volume={33},
+  pages={17200--17211},
+  year={2020}
+}
+```
