@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-start_lr = 1.01
+start_lr = 0.99
 effective_batch_size = 16
 num_workers = 8
 batch_size = num_workers * effective_batch_size
