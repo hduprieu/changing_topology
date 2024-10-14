@@ -366,7 +366,26 @@ class Random_exponential(AveragingScheme):
         w = (w + torch.roll(w, -offset, 0)) / 2
         return w
     
+class Average_one_peer(AveragingScheme):   
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+        self.d = int(math.log(n, 2))
+        self.period = self.d
 
+    def w(self, t=0):
+        mat = torch.eye(self.n) - torch.eye(self.n)
+        for i in range(self.d):
+            offset = 2 ** (i % self.d)
+            mat += (self._w(offset) + torch.transpose(self._w(offset), 0, 1))/2
+        return 1/self.d * mat
+
+    @lru_cache(maxsize=10)
+    def _w(self, offset):
+        w = torch.eye(self.n)
+        w = (w + torch.roll(w, -offset, 0)) / 2
+        return w
+    
 class LocalSteps(AveragingScheme):
     def __init__(self, n, period):
         super().__init__()
@@ -414,6 +433,8 @@ def scheme_for_string(topology: str, num_workers: int) -> AveragingScheme:
         return TimeVaryingExponential(num_workers)
     if topology == "Random exponential":
         return Random_exponential(num_workers)
+    if topology == "Average-one peer":
+        return Average_one_peer(num_workers)
     if topology.startswith("Local steps"):
         for i in range(100):
             if topology == f"Local steps ({i})":
