@@ -15,3 +15,4 @@ The work presented in this repository buils upon the following paper on decentra
 ```
 
 In this article, Vogels et al. study the influence of a communication graph's topology on the performance (# of steps to convergence) of decentralized SGD for static graphs. We extend this study to the case of time-varying graphs, where graphs are randomly sampled from a given distribution at each iteration of the decentralized SGD (D-SGD) algorithm.
+
