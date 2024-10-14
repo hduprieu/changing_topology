@@ -1,7 +1,7 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from topologies import *
+from topology.topologies import *
 
 import torch.nn as nn
 import torch.nn.functional as F
